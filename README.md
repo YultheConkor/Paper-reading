@@ -8,4 +8,4 @@
 
 ### Blog
 
-- [ ] Generalized Visual Language Models[[Paper](https://lilianweng.github.io/posts/2022-06-09-vlm/)]
+- [ ] Generalized Visual Language Models[[Paper](https://lilianweng.github.io/posts/2022-06-09-vlm/)][[Note](https://github.com/YultheConkor/Paper-reading/blob/main/notes/VLM_blog.md)]
