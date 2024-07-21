@@ -18,9 +18,7 @@
 
 > According to ablation studies, it is important to have both image-text and text-only data for training. The PrefixLM objective outperforms both [span corruption](https://arxiv.org/abs/1910.10683) and naive LM.
 
-这个结论与[VILA](https://arxiv.org/abs/2312.07533)进行实验后得到的结论是相似的，即纯文本训练数据的加入会提升模型的性能。但VILA叙述的更进一步，作者发现图片-文本对的效果不如使用**图片-文本交错数据**（如一段对图片的叙述）。
-
-![](/Users/wanrenwang/Library/Application%20Support/marktext/images/2024-07-18-22-43-43-image.png)
+这个结论与[VILA](https://arxiv.org/abs/2312.07533)进行实验后得到的结论是相似的，即纯文本训练数据的加入会提升模型的性能。但VILA叙述的更进一步，作者发现图片-文本对的效果不如使用**图片-文本交错数据**（如一段对图片的叙述）。![](/Users/wanrenwang/Library/Application%20Support/marktext/images/2024-07-21-20-41-12-image.png)
 
 <center>关于图片-文本对和图片-文本交错数据的区别</center>
 
@@ -52,7 +50,7 @@
 
 > but it needs to be processed by a light mapping network  such that image embedding vectors are translated into the same semantic space as the pre-trained LM.The network $F$ maps CLIP embeddings into a sequence of $k$ embedding vectors, each with the same dimension as a word embedding in GPT2.Increasing the prefix size $k$ helps improve the performance.
 
-正如前述，ClipCap使用了CLIP作为Vision Encoder，但它需要使用一个light mapping network（轻量投射网络？）$F$将得到的image embedding映射到与预训练LM的语义空间相同的语义空间。
+正如前述，ClipCap使用了CLIP作为Vision Encoder，但它需要使用一个light mapping network（轻量投射网络？）$F$ 将得到的image embedding映射到与预训练LM的语义空间相同的语义空间。
 
 *个人理解是通过MLP让image embedding和text embedding在维度上面对齐，然后通过训练发现，这样经过MLP对齐之后就可以达到深层语义对齐的效果。从而反向推导，说出了“such that image embedding vectors are translated into the same semantic space as the pre-trained LM.“，待求证*
 
@@ -177,19 +175,19 @@ def create_mask(num_images, num_visual_tokens_per_image, num_text_tokens):
     # 初始化全为零的mask，大小为 (num_text_tokens, total_visual_tokens)
     total_visual_tokens = num_images * num_visual_tokens_per_image
     mask = torch.zeros(num_text_tokens, total_visual_tokens)
-    
+
     # 对于每个文本标记，找到它之前的最后一张图片的视觉标记，并设置mask
     for t in range(num_text_tokens):
         # 找到对应的图片索引
         last_image_idx = (t // num_visual_tokens_per_image)
-        
+
         # 计算该图片在mask中的开始和结束位置
         start_idx = last_image_idx * num_visual_tokens_per_image
         end_idx = start_idx + num_visual_tokens_per_image
-        
+
         # 设置mask，文本标记 t 只关注它之前的最后一张图片的视觉标记
         mask[t, start_idx:end_idx] = 1
-        
+
     return mask
 
 # 示例参数
@@ -200,7 +198,6 @@ num_text_tokens = 10
 # 创建mask
 mask = create_mask(num_images, num_visual_tokens_per_image, num_text_tokens)
 print(mask)
-
 ```
 
 > 解释：
@@ -296,20 +293,19 @@ def compute_phi(sequence):
     """
     phi = []
     last_image_index = 0
-    
+
     for idx, item in enumerate(sequence):
         if item == "IMG":
             last_image_index += 1
         elif item == "TEXT":
             phi.append(last_image_index)
-    
+
     return phi
 
 # 示例序列
 sequence = ["IMG", "TEXT", "TEXT", "IMG", "TEXT", "IMG", "TEXT", "TEXT"]
 phi = compute_phi(sequence)
 print(phi)  # 输出: [1, 1, 2, 3, 3]
-
 ```
 
 - **输入序列**：`sequence` 是一个包含文本和图像/视频交错的列表。这里用 "IMG" 表示图像/视频，用 "TEXT" 表示文本。
@@ -403,7 +399,6 @@ for epoch in range(num_epochs):
             accumulated_gradients = [torch.zeros_like(param) for param in model.parameters()]
 
     print(f'Epoch [{epoch+1}/{num_epochs}] complete')
-
 ```
 
 > - **初始化模型和优化器**：定义一个简单的线性模型，并使用Adam优化器。
@@ -430,6 +425,7 @@ CoCa同时在对比和生成任务上进行训练。对比学习方面，使用�
 > - 模型在训练时只需要判断出正例和负例即可  
 > 
 > - 使用“构建好的prompt”进行测试，得到的得分最高的就是那一类  
+>   
 >   - 测试图片是随机的，可是用来构建prompt的词语也可以是随机的，不像传统方法是固定的
 > 
 > - 伪代码例  
@@ -522,8 +518,6 @@ CoCa模型在预训练时使用了不同的注意力池化器，具体来说：
 > 
 > - In-context examples are selected based on how *similar* they are to the question using CLIP embedding.
 > - *Multi-query ensembling* is to prompt the model multiple times to get multiple answers and the one with highest logprob is selected.
-
-
 
 *CLIP嵌入可以用于在图像和文本之间建立相关性，以便在知识问答（VQA）任务中选择最相关的上下文示例。使用CLIP嵌入的步骤应该如下，待考证：*
 

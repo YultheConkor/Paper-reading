@@ -1,5 +1,7 @@
 # Paper-reading
 
+Some of pictures in the notes may not be shown correctly, please download first and read.
+
 ## AI
 
 ### CVPR2024
